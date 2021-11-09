@@ -4,6 +4,7 @@
 #include <string>
 #include <stack>
 #include <utility>
+#include <iostream>
 
 void rwa2::Mouse::display_walls() {
     for (int x = 0; x < m_maze_width; x += 1) {
@@ -33,72 +34,90 @@ void rwa2::Mouse::display_walls() {
     }
 }
 
-bool is_in_node_list(std::pair<int, int> &cur_node, std::vector<std::pair<int, int>> &node_list){
+bool is_in_visited_node(int x, int y, std::vector<std::pair<int, int>> &visited_node){
     // use binary search to check if current node is in the list of nodes
     int flag = 0;
-    int start = 0, end = node_list.size();
+    int start = 0, end = visited_node.size();
     while(start < end && !flag){
         int middle = start + (end - start)/2;
-        if(node_list[middle].first == cur_node.first \
-            && node_list[middle].second == cur_node.second) return true;
-        else if(node_list[middle].first > cur_node.first) end = middle - 1;
+        if(visited_node[middle].first == x \
+            && visited_node[middle].second == y) return true;
+        else if(visited_node[middle].first > x) end = middle - 1;
         else start = middle + 1;
     }
     return false; 
 }
 
-bool rwa2::Mouse::search_maze(){
-    // current node
-    std::pair<int, int> cur_node = rwa2::Mouse::get_cur(); 
-    // goal node
-    std::pair<int, int> goal_node = rwa2::Mouse::get_goal();
-
-    // stack of nodes
-    std::stack<std::pair<int, int>> st;
-    // list of nodes
-    std::vector<std::pair<int, int>> node_list;
+bool rwa2::Mouse::search_maze(){ 
+    
     // current node is not the goal
-    if (!(cur_node.first == goal_node.first \
-        && cur_node.second == goal_node.second)){
-        if(!st.empty()) st.push(cur_node);
+    // if (!(m_x == goal_x \
+    //     && m_y == goal_y)){
+    //     if(st.empty()){
+    //         st.push(std::make_pair(m_x, m_y));
+    //     }
+    // }
+    // // current node is the goal
+    // else return true;
+
+    if ((m_x == goal_x \
+        && m_y == goal_y)){
+        return true;
     }
-    // current node is the goal
-    else return true;
-    if(!is_in_node_list(cur_node, node_list)) 
-        node_list.push_back(cur_node);
+
+    // check if current node is in visited list
+    if(!is_in_visited_node(m_x, m_y, visited_node)) 
+        visited_node.push_back(std::make_pair(m_x, m_y));
+    // std::cout << m_maze.at(m_x).at(m_y).compute_number_of_walls() << '\n';
+    
     // check North
-    if(m_maze.at(cur_node.first).at(cur_node.second).is_wall(direction::NORTH)){
-        st.push(cur_node);
-        cur_node.second += 1;
+    if(!m_maze.at(m_x).at(m_y).is_wall(direction::NORTH) && is_valid(m_x, m_y+1)){
+        st.push(std::make_pair(m_x, m_y+1));
+        // std::cout << m_y + 1 << '\n';
+        m_y += 1;
     }
     // check East
-    else if(m_maze.at(cur_node.first).at(cur_node.second).is_wall(direction::EAST)){
-        st.push(cur_node);
-        cur_node.first += 1;
+    else if(!m_maze.at(m_x).at(m_y).is_wall(direction::EAST) && is_valid(m_x+1, m_y)){
+        st.push(std::make_pair(m_x+1, m_y));
+        m_x += 1;
     }
     // check South
-    else if(m_maze.at(cur_node.first).at(cur_node.second).is_wall(direction::SOUTH)){
-        st.push(cur_node);
-        cur_node.second -= 1;
+    else if(!m_maze.at(m_x).at(m_y).is_wall(direction::SOUTH) && is_valid(m_x, m_y-1)){
+        st.push(std::make_pair(m_x, m_y-1));
+        m_y -= 1;
     }
     // check West
-    else if(m_maze.at(cur_node.first).at(cur_node.second).is_wall(direction::WEST)){
-        st.push(cur_node);
-        cur_node.first -= 1;
+    else if(!m_maze.at(m_x).at(m_y).is_wall(direction::WEST) && is_valid(m_x-1, m_y)){
+        st.push(std::make_pair(m_x-1, m_y));
+        m_x -= 1;
     }
     // no valid nodes: backtrack
     else{
         // remove current node from stack
-        if(!st.empty()) st.pop();
+        if(!st.empty()){
+            st.pop();
+        }
         // empty stack = goal not found
         else return false;
     }
+
     if(!st.empty()){
         // current node is now the one at the top of stack
         m_x = st.top().first;
         m_y = st.top().second;
+        std::cout << m_x << ' ' << m_y << '\n';
         search_maze(); 
     }
     // empty stack = goal not found
     else return false;
+}
+
+void rwa2::Mouse::move_forward(){
+    API::moveForward();
+}
+void rwa2::Mouse::turn_left(){
+    API::turnLeft();
+}
+void rwa2::Mouse::turn_right(){
+    API::turnRight();
 }

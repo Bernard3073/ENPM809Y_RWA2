@@ -42,6 +42,8 @@
 #include <array>
 #include <vector>
 #include <utility>
+#include <stack>
+#include <iostream>
 
 namespace rwa2 {
     /**
@@ -93,22 +95,37 @@ namespace rwa2 {
          *
          */
         void turn_right();
-
+        /**
+         * @brief setter for goal x, y position of the Mouse
+         * 
+         */
+        void set_goal(int x, int y){
+             goal_x = x;
+             goal_y = y;
+        }
         /**
          * @brief getter for goal x, y position of the Mouse
          * 
          */
         std::pair<int, int> get_goal(){
-            return std::make_pair(rwa2::Mouse::goal_x, rwa2::Mouse::goal_y);
+            return std::make_pair(goal_x, goal_y);
         }
         /**
          * @brief getter for current x, y position of the Mouse
          * 
          */
         std::pair<int, int> get_cur(){
-            return std::make_pair(rwa2::Mouse::m_x, rwa2::Mouse::m_y);
+            return std::make_pair(m_x, m_y);
         }
+        // // return the backtracking path
+        // std::stack<std::pair<int, int>> get_path(){
+        //     return st;
+        // }
 
+        bool is_valid(int x, int y){
+            if(x >= 0 && x < m_maze_width-1 && y >= 0 && y < m_maze_height-1) return true;
+            return false;
+        }
 
         private:
         static const int m_maze_width{ 16 }; //width of the maze
@@ -118,6 +135,10 @@ namespace rwa2 {
         int m_direction; //direction of the Mouse in the maze
         int goal_x; // goal x position
         int goal_y; // goal y position
+        // stack of nodes
+        std::stack<std::pair<int, int>> st;
+        // list of nodes
+        std::vector<std::pair<int, int>> visited_node;
         std::array<std::array<Node, m_maze_width>, m_maze_height> m_maze; //2D array maze object
     };
 }
