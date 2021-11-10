@@ -42,6 +42,7 @@
 #include <array>
 #include <vector>
 #include <utility>
+#include <tuple>
 #include <stack>
 #include <iostream>
 
@@ -79,7 +80,7 @@ namespace rwa2 {
          * @return true A path is found
          * @return false A path is not found
          */
-        bool search_maze();
+        bool search_maze(int x, int y, std::stack<std::tuple<int, int, int>> &st, std::vector<std::pair<int, int>> &visited_node);
         /**
          * @brief Make the Mouse move forward
          *
@@ -111,21 +112,30 @@ namespace rwa2 {
             return std::make_pair(goal_x, goal_y);
         }
         /**
-         * @brief getter for current x, y position of the Mouse
+         * @brief getter for current x, y position and direction of the Mouse
          * 
          */
-        std::pair<int, int> get_cur(){
-            return std::make_pair(m_x, m_y);
+        std::tuple<int, int, int> get_cur_status(){
+            return std::make_tuple(m_x, m_y, m_direction);
         }
-        // // return the backtracking path
-        // std::stack<std::pair<int, int>> get_path(){
-        //     return st;
-        // }
+
 
         bool is_valid(int x, int y){
-            if(x >= 0 && x < m_maze_width-1 && y >= 0 && y < m_maze_height-1) return true;
+            if(x >= 0 && x < m_maze_width && y >= 0 && y < m_maze_height) return true;
             return false;
         }
+
+        // std::stack<std::tuple<int, int, direction>> get_backtracking_path(){
+        //     return st;
+        // }
+        // void empty_backtracking_path(){
+        //     st = std::stack<std::tuple<int, int, direction>> ();
+        // }
+        // void empty_visited_node(){
+        //     visited_node.clear();
+        // }
+
+        void update_maze_info(int x, int y);
 
         private:
         static const int m_maze_width{ 16 }; //width of the maze
@@ -135,10 +145,6 @@ namespace rwa2 {
         int m_direction; //direction of the Mouse in the maze
         int goal_x; // goal x position
         int goal_y; // goal y position
-        // stack of nodes
-        std::stack<std::pair<int, int>> st;
-        // list of nodes
-        std::vector<std::pair<int, int>> visited_node;
         std::array<std::array<Node, m_maze_width>, m_maze_height> m_maze; //2D array maze object
     };
 }

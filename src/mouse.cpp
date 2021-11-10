@@ -3,6 +3,7 @@
 #include "../include/util/util.h"
 #include <string>
 #include <stack>
+#include <tuple>
 #include <utility>
 #include <iostream>
 
@@ -35,61 +36,59 @@ void rwa2::Mouse::display_walls() {
 }
 
 bool is_in_visited_node(int x, int y, std::vector<std::pair<int, int>> &visited_node){
-    // use binary search to check if current node is in the list of nodes
-    int flag = 0;
-    int start = 0, end = visited_node.size();
-    while(start < end && !flag){
-        int middle = start + (end - start)/2;
-        if(visited_node[middle].first == x \
-            && visited_node[middle].second == y) return true;
-        else if(visited_node[middle].first > x) end = middle - 1;
-        else start = middle + 1;
+    for(auto it = visited_node.begin(); it!= visited_node.end(); it++){
+        if(it->first == x && it->second == y) return true;
     }
     return false; 
 }
 
-bool rwa2::Mouse::search_maze(){ 
+bool rwa2::Mouse::search_maze(int cur_x, int cur_y, std::stack<std::tuple<int, int, int>> &st, std::vector<std::pair<int, int>> &visited_node){ 
     
     // current node is not the goal
-    // if (!(m_x == goal_x \
-    //     && m_y == goal_y)){
-    //     if(st.empty()){
-    //         st.push(std::make_pair(m_x, m_y));
-    //     }
-    // }
-    // // current node is the goal
-    // else return true;
-
-    if ((m_x == goal_x \
-        && m_y == goal_y)){
-        return true;
+    if (!(cur_x == goal_x \
+        && cur_y == goal_y)){
+        if(st.empty()){
+            st.push(std::make_tuple(cur_x, cur_y, m_direction));
+        }
     }
+    // current node is the goal
+    else return true;
+
+    // if ((cur_x == goal_x \
+    //     && cur_y == goal_y)){
+    //     return true;
+    // }
 
     // check if current node is in visited list
-    if(!is_in_visited_node(m_x, m_y, visited_node)) 
-        visited_node.push_back(std::make_pair(m_x, m_y));
-    // std::cout << m_maze.at(m_x).at(m_y).compute_number_of_walls() << '\n';
-    
+    if(!is_in_visited_node(cur_x, cur_y, visited_node)) 
+        visited_node.push_back(std::make_pair(cur_x, cur_y));
+
     // check North
-    if(!m_maze.at(m_x).at(m_y).is_wall(direction::NORTH) && is_valid(m_x, m_y+1)){
-        st.push(std::make_pair(m_x, m_y+1));
-        // std::cout << m_y + 1 << '\n';
-        m_y += 1;
+    if((!m_maze.at(cur_x).at(cur_y).is_wall(direction::NORTH)) && (!is_in_visited_node(cur_x, cur_y+1, visited_node)))
+    {
+        st.push(std::make_tuple(cur_x, cur_y+1, 0));
+        // API::setWall(cur_x, cur_y, 'n');
+        cur_y += 1;
+        
     }
     // check East
-    else if(!m_maze.at(m_x).at(m_y).is_wall(direction::EAST) && is_valid(m_x+1, m_y)){
-        st.push(std::make_pair(m_x+1, m_y));
-        m_x += 1;
+    else if((!m_maze.at(cur_x).at(cur_y).is_wall(direction::EAST)) && (!is_in_visited_node(cur_x+1, cur_y, visited_node)))
+    {
+        st.push(std::make_tuple(cur_x+1, cur_y, 1));
+        // API::setWall(cur_x, cur_y, 'e');
+        cur_x += 1;
     }
     // check South
-    else if(!m_maze.at(m_x).at(m_y).is_wall(direction::SOUTH) && is_valid(m_x, m_y-1)){
-        st.push(std::make_pair(m_x, m_y-1));
-        m_y -= 1;
+    else if(!m_maze.at(cur_x).at(cur_y).is_wall(direction::SOUTH) && (!is_in_visited_node(cur_x, cur_y-1, visited_node))){
+        st.push(std::make_tuple(cur_x, cur_y-1, 2));
+        // API::setWall(cur_x, cur_y, 's');
+        cur_y -= 1;
     }
     // check West
-    else if(!m_maze.at(m_x).at(m_y).is_wall(direction::WEST) && is_valid(m_x-1, m_y)){
-        st.push(std::make_pair(m_x-1, m_y));
-        m_x -= 1;
+    else if(!m_maze.at(cur_x).at(cur_y).is_wall(direction::WEST) && (!is_in_visited_node(cur_x-1, cur_y, visited_node))){
+        st.push(std::make_tuple(cur_x-1, cur_y, 3));
+        // API::setWall(cur_x, cur_y, 'w');
+        cur_x -= 1;
     }
     // no valid nodes: backtrack
     else{
@@ -100,13 +99,12 @@ bool rwa2::Mouse::search_maze(){
         // empty stack = goal not found
         else return false;
     }
-
+    
     if(!st.empty()){
         // current node is now the one at the top of stack
-        m_x = st.top().first;
-        m_y = st.top().second;
-        std::cout << m_x << ' ' << m_y << '\n';
-        search_maze(); 
+        cur_x = std::get<0>(st.top());
+        cur_y = std::get<1>(st.top());
+        search_maze(cur_x, cur_y, st, visited_node); 
     }
     // empty stack = goal not found
     else return false;
@@ -120,4 +118,93 @@ void rwa2::Mouse::turn_left(){
 }
 void rwa2::Mouse::turn_right(){
     API::turnRight();
+}
+
+void rwa2::Mouse::update_maze_info(int cur_x, int cur_y){
+    switch(m_direction){
+        // facing north
+        case 0:{
+            char d;
+            if(API::wallFront()){
+                std::cerr << "Wall front" << '\n';
+                d = 'n';                
+                m_maze.at(cur_x).at(cur_y).set_wall(0, true);
+                API::setWall(cur_x, cur_y, d);
+            }
+            else if(API::wallRight()){
+                d = 'e';
+                m_maze.at(cur_x).at(cur_y).set_wall(1, true);
+                API::setWall(cur_x, cur_y, d);
+            }
+            else if(API::wallLeft()){
+                d = 'w';
+                m_maze.at(cur_x).at(cur_y).set_wall(3, true);
+                API::setWall(cur_x, cur_y, d);
+            }
+            break;
+        }
+        // facing east
+        case 1:{
+            char d;
+            if(API::wallFront()){
+                d = 'e';
+                m_maze.at(cur_x).at(cur_y).set_wall(1, true);
+                API::setWall(cur_x, cur_y, d);
+            }
+            else if(API::wallRight()){
+                d = 's';
+                m_maze.at(cur_x).at(cur_y).set_wall(2, true);
+                API::setWall(cur_x, cur_y, d);
+            }
+            else if(API::wallLeft()){
+                d = 'n';
+                m_maze.at(cur_x).at(cur_y).set_wall(0, true);
+                API::setWall(cur_x, cur_y, d);
+            }
+            break;
+        }
+        // facing south
+        case 2:{
+            char d;
+            if(API::wallFront()){
+                d = 's';
+                m_maze.at(cur_x).at(cur_y).set_wall(2, true);
+                API::setWall(cur_x, cur_y, d);
+            }
+            else if(API::wallRight()){
+                d = 'w';
+                m_maze.at(cur_x).at(cur_y).set_wall(3, true);
+                API::setWall(cur_x, cur_y, d);
+            }
+            else if(API::wallLeft()){
+                d = 'e';
+                m_maze.at(cur_x).at(cur_y).set_wall(1, true);
+                API::setWall(cur_x, cur_y, d);
+            }
+            
+            
+            break;
+        }
+        // facing west
+        case 3:{
+            char d;
+            if(API::wallFront()){
+                d = 'w';
+                API::setWall(cur_x, cur_y, d);
+                m_maze.at(cur_x).at(cur_y).set_wall(3, true);
+            }
+            else if(API::wallRight()){
+                d = 'n';
+                API::setWall(cur_x, cur_y, d);
+                m_maze.at(cur_x).at(cur_y).set_wall(0, true);
+            }
+            else if(API::wallLeft()){
+                d = 's';
+                API::setWall(cur_x, cur_y, d);
+                m_maze.at(cur_x).at(cur_y).set_wall(2, true);
+            }
+            
+            break;
+        }
+    }
 }
