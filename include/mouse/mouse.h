@@ -80,7 +80,7 @@ namespace rwa2 {
          * @return true A path is found
          * @return false A path is not found
          */
-        bool search_maze(int x, int y, std::stack<std::tuple<int, int, int>> &st, std::vector<std::pair<int, int>> &visited_node);
+        bool search_maze(int x, int y, std::stack<std::pair<int, int>> &st, std::vector<std::pair<int, int>> &visited_node);
         /**
          * @brief Make the Mouse move forward
          *
@@ -118,6 +118,15 @@ namespace rwa2 {
         std::tuple<int, int, int> get_cur_status(){
             return std::make_tuple(m_x, m_y, m_direction);
         }
+        /**
+         * @brief setter for current x, y position and direction of the Mouse
+         * 
+         */
+        void set_cur_status(int x, int y, int dir){
+            m_x = x; 
+            m_y = y; 
+            m_direction = dir;
+        }
 
 
         bool is_valid(int x, int y){
@@ -125,18 +134,8 @@ namespace rwa2 {
             return false;
         }
 
-        // std::stack<std::tuple<int, int, direction>> get_backtracking_path(){
-        //     return st;
-        // }
-        // void empty_backtracking_path(){
-        //     st = std::stack<std::tuple<int, int, direction>> ();
-        // }
-        // void empty_visited_node(){
-        //     visited_node.clear();
-        // }
-
-        void update_maze_info(int x, int y);
-
+        void mouse_run(direction d);
+        bool check_wall(direction d);
         private:
         static const int m_maze_width{ 16 }; //width of the maze
         static const int m_maze_height{ 16 };//height of the maze
