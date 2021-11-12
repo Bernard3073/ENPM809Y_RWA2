@@ -134,8 +134,8 @@ namespace rwa2 {
             return false;
         }
 
-        void mouse_run(direction d);
-        bool check_wall(direction d);
+        bool mouse_run(int &x, int &y, direction d);
+        void check_wall();
         private:
         static const int m_maze_width{ 16 }; //width of the maze
         static const int m_maze_height{ 16 };//height of the maze

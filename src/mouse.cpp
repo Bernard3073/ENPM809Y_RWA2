@@ -88,7 +88,7 @@ bool rwa2::Mouse::search_maze(int cur_x, int cur_y, std::stack<std::pair<int, in
         // empty stack = goal not found
         else return false;
     }
-    // API::setColor(cur_x, cur_y, 'g');
+    API::setColor(cur_x, cur_y, 'g');
     
     if(!st.empty()){
         // current node is now the one at the top of stack
@@ -110,9 +110,10 @@ void rwa2::Mouse::turn_right(){
     API::turnRight();
 }
 
-bool rwa2::Mouse::check_wall(direction moving_dir){
+void rwa2::Mouse::check_wall(){
     char d;
     int d_int;
+    std::cerr << "CHECK_WALL: "<<std::to_string(m_x) << ", "  << std::to_string(m_y) << ", d:" << m_direction << '\n';
     switch(m_direction){
         // facing north
         case 0:{
@@ -121,17 +122,19 @@ bool rwa2::Mouse::check_wall(direction moving_dir){
                 d_int = 0;
                 m_maze.at(m_x).at(m_y).set_wall(d_int, true);
                 API::setWall(m_x, m_y, d);
-                if(moving_dir == NORTH) break;
             }
-            else if(API::wallRight()){
+            if(API::wallRight()){
                 d = 'e';
                 d_int = 1;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }
-            else if(API::wallLeft()){
+            if(API::wallLeft()){
                 d = 'w';
                 d_int = 3;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }
-            
             
             break;
         }
@@ -140,17 +143,21 @@ bool rwa2::Mouse::check_wall(direction moving_dir){
             if(API::wallFront()){
                 d = 'e';
                 d_int = 1;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }
-            else if(API::wallRight()){
+            if(API::wallRight()){
                 d = 's';
                 d_int = 2;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }
-            else if(API::wallLeft()){
+            if(API::wallLeft()){
                 d = 'n';
                 d_int = 0;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }
-            m_maze.at(m_x).at(m_y).set_wall(d_int, true);
-            API::setWall(m_x, m_y, d);
             break;
         }
         // facing south
@@ -158,68 +165,85 @@ bool rwa2::Mouse::check_wall(direction moving_dir){
             if(API::wallFront()){
                 d = 's';
                 d_int = 2;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }
-            else if(API::wallRight()){
+            if(API::wallRight()){
                 d = 'w';
                 d_int = 3;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }
-            else if(API::wallLeft()){
+            if(API::wallLeft()){
                 d = 'e';
                 d_int = 1;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }  
-            m_maze.at(m_x).at(m_y).set_wall(d_int, true);
-            API::setWall(m_x, m_y, d);
+            
             break;
         }
         // facing west
         case 3:{
             if(API::wallFront()){
                 d = 'w';
-                d_int = 1;
+                d_int = 3;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }
-            else if(API::wallRight()){
+            if(API::wallRight()){
                 d = 'n';
                 d_int = 0;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }
-            else if(API::wallLeft()){
+            if(API::wallLeft()){
                 d = 's';
                 d_int = 2;
+                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                API::setWall(m_x, m_y, d);
             }
-            m_maze.at(m_x).at(m_y).set_wall(d_int, true);
-            API::setWall(m_x, m_y, d);
+            
             break;
         }
     }
-    return true;
+    //display the number of walls surrounding the current node
+    API::setText(m_x, m_y, std::to_string(m_maze.at(m_x).at(m_y).compute_number_of_walls()));
+    std::cerr << "WALL: "<<std::to_string(m_x) << ", "  << std::to_string(m_y) << ", w:" << d << '\n';
+
 }
 
-void rwa2::Mouse::mouse_run(direction moving_dir){
+bool rwa2::Mouse::mouse_run(int &delta_x, int &delta_y, direction moving_dir){
     char d;
     int d_int;
+    std::cerr << "f_D: " << std::to_string(m_direction) << '\n';
+    check_wall();
     switch(m_direction){
         // facing north
         case 0:{
             if(API::wallFront()){
-                d = 'n';
-                d_int = 0;
-                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
-                API::setWall(m_x, m_y, d);
-                if(moving_dir == NORTH) break;
+                // d = 'n';
+                // d_int = 0;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == NORTH) return false;
             }
-            else if(API::wallRight()){
-                d = 'e';
-                d_int = 1;
-                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
-                API::setWall(m_x, m_y, d);
-                if(moving_dir == EAST) break;
+            if(API::wallRight()){
+                // d = 'e';
+                // d_int = 1;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == EAST) return false;
             }
-            else if(API::wallLeft()){
-                d = 'w';
-                d_int = 3;
-                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
-                API::setWall(m_x, m_y, d);
-                if(moving_dir == WEST) break;
+            if(API::wallLeft()){
+                // d = 'w';
+                // d_int = 3;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == WEST) return false;
             }
+            // set_cur_status(m_x + delta_x, m_y + delta_y, moving_dir);
+            
             switch(moving_dir){
                 case direction::NORTH:{
                     move_forward();
@@ -227,74 +251,116 @@ void rwa2::Mouse::mouse_run(direction moving_dir){
                 }
                 case direction::EAST:{
                     turn_right();
+                    move_forward();
                     break;
                 }
                 case direction::SOUTH:{
                     turn_right();
                     turn_right();
+                    move_forward();
                     break;
                 }
                 case direction::WEST:{
                     turn_left();
+                    move_forward();
                     break;
                 }
             }
+            set_cur_status(m_x + delta_x, m_y + delta_y, moving_dir);
+            
             break;
         }
         // facing east
         case 1:{
+            std::cerr << "Facing East !!!!" << '\n';
             if(API::wallFront()){
-                d = 'e';
-                d_int = 1;
-                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
-                API::setWall(m_x, m_y, d);
-                if(moving_dir == EAST) break;
+                // d = 'e';
+                // d_int = 1;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == EAST) return false;
             }
-            else if(API::wallRight()){
-                d = 's';
-                d_int = 2;
-                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
-                API::setWall(m_x, m_y, d);
-                if(moving_dir == SOUTH) break;
+            if(API::wallRight()){
+                // d = 's';
+                // d_int = 2;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == SOUTH) return false;
             }
-            else if(API::wallLeft()){
-                d = 'n';
-                d_int = 0;
-                m_maze.at(m_x).at(m_y).set_wall(d_int, true);
-                API::setWall(m_x, m_y, d);
-                if(moving_dir == NORTH) break;
+            if(API::wallLeft()){
+                // d = 'n';
+                // d_int = 0;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == NORTH) return false;
             }
-
+            
+            
             switch(moving_dir){
                 case direction::NORTH:{
                     turn_left();
+                    move_forward();
+                    std::cerr << "LEFT East !!!" << '\n';
                     break;
                 }
                 case direction::EAST:{
                     move_forward();
+                    std::cerr << "FORWARD East !!!" << '\n';
+                    
                     break;
                 }
                 case direction::SOUTH:{
                     turn_right();
+                    move_forward();
+                    std::cerr << "RIGHT East !!!" << '\n';
                     break;
                 }
                 case direction::WEST:{
                     turn_right();
                     turn_right();
+                    move_forward();
+                    std::cerr << "RIGHT RIGHT East !!!" << '\n';
                     break;
                 }
             }
+            set_cur_status(m_x + delta_x, m_y + delta_y, moving_dir); 
+            break;
         }
         // facing south
         case 2:{
-            switch(dir){
+            if(API::wallFront()){
+                // d = 's';
+                // d_int = 2;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == SOUTH) return false;
+            }
+            if(API::wallRight()){
+                // d = 'w';
+                // d_int = 3;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == WEST) return false;
+            }
+            if(API::wallLeft()){
+                // d = 'e';
+                // d_int = 1;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == EAST) return false;
+            }  
+            // set_cur_status(m_x + delta_x, m_y + delta_y, moving_dir);
+            
+            switch(moving_dir){
                 case direction::NORTH:{
                     turn_right();
                     turn_right();
+                    move_forward();
                     break;
                 }
                 case direction::EAST:{
                     turn_left();
+                    move_forward();
                     break;
                 }
                 case direction::SOUTH:{
@@ -303,24 +369,58 @@ void rwa2::Mouse::mouse_run(direction moving_dir){
                 }
                 case direction::WEST:{
                     turn_right();
+                    move_forward();
+
                     break;
                 }
             }  
+            set_cur_status(m_x + delta_x, m_y + delta_y, moving_dir);
             break;
         }
         // facing west
         case 3:{
-            switch(dir){
+            if(API::wallFront()){
+                // d = 'w';
+                // d_int = 1;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == WEST) return false;
+            }
+            if(API::wallRight()){
+                // d = 'n';
+                // d_int = 0;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == NORTH) return false;
+            }
+            if(API::wallLeft()){
+                // d = 's';
+                // d_int = 2;
+                // m_maze.at(m_x).at(m_y).set_wall(d_int, true);
+                // API::setWall(m_x, m_y, d);
+                if(moving_dir == SOUTH) return false;
+            }
+            // set_cur_status(m_x + delta_x, m_y + delta_y, moving_dir);
+            
+            switch(moving_dir){
                 case direction::NORTH:{
+                    
                     turn_right();
+                    move_forward();
+
                     break;
                 }
                 case direction::EAST:{
                     turn_right();
+                    turn_right();
+                    move_forward();
+
                     break;
                 }
                 case direction::SOUTH:{
-                    turn_left();
+                    turn_left();                    
+                    move_forward();
+
                     break;
                 }
                 case direction::WEST:{
@@ -328,28 +428,13 @@ void rwa2::Mouse::mouse_run(direction moving_dir){
                     break;
                 }
             }
+            set_cur_status(m_x + delta_x, m_y + delta_y, moving_dir);
             break;
         }
     }
-    // int m_d;
-    // switch (d)
-    // {
-    // case 'n':
-    //     m_d = 0;
-    //     break;
-    // case 'e':
-    //     m_d = 1;
-    //     break;
-    // case 's':
-    //     m_d = 2;
-    //     break;
-    // case 'w':
-    //     m_d = 3;
-    //     break;
-    // default:
-    //     break;
-    // }
-    // set_cur_status(x, y, m_d);
-	// std::cerr <<  "Update position: " << std::to_string(x) << ", "  << std::to_string(y) << '\n';
+    std::cerr << "***************" << '\n';	
+    std::cerr << std::to_string(m_x) << ", "  << std::to_string(m_y) << ", f_D: " << std::to_string(m_direction)<< '\n';
+    std::cerr << "^^^^^^^^^^^^^^^" << '\n';
     
+    return true;
 }

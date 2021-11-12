@@ -16,13 +16,13 @@ int main() {
 	4. direction of the mouse
 	*/
 	rwa2::Mouse mouse;
-	// mouse.display_walls();
+	mouse.display_walls();
 	while(1){
 		// clear the color for all tiles
 		API::clearAllColor();
 		// set color and text for goal cell
-		API::setColor(7, 7, 'G');
-		API::setText(7, 7, "G1");
+		API::setColor(7, 7, 'R');
+		API::setText(7, 7, "Goal");
 		// set mouse's goal position
 		mouse.set_goal(7, 7);
 		// get mouse's current position
@@ -44,50 +44,92 @@ int main() {
 				path.push(st.top());
 				st.pop();
 			}
+			int flag = 0;
 			// move the robot along the path
-			while(!path.empty()){
-				// std::cerr << "Start moving !!!" << '\n';
+			while(!path.empty() && flag == 0){
 				m_x = std::get<0>(mouse.get_cur_status());
 				m_y = std::get<1>(mouse.get_cur_status());
 				m_d = std::get<2>(mouse.get_cur_status());
-				int new_x = path.top().first - m_x;
-				int new_y = path.top().second - m_y;
+				std::cerr << std::to_string(m_d) << '\n';
+				
+				int delta_x = path.top().first - m_x;
+				int delta_y = path.top().second - m_y;
 				int dir;
+				// mouse.set_cur_status(m_x, m_y, m_d);
+				
+				// std::cerr << "CUR: "<<std::to_string(m_x) << ", "  << std::to_string(m_y) << '\n';
+				std::cerr << "NEXT: "<<std::to_string(path.top().first) << ", "  << std::to_string(path.top().second) << '\n';
+				// std::cerr << "DEL: "<<std::to_string(delta_x) << ", "  << std::to_string(delta_y) << '\n';
+				mouse.check_wall();
+				
 				// moving north
-				if(new_x == 0 && new_y == 1){
+				if(delta_x == 0 && delta_y == 1){
 					dir = 0;
 					std::cerr << "Move North !!!" << '\n';
-					mouse.mouse_run(direction::NORTH);
+					if(!mouse.mouse_run(delta_x, delta_y, direction::NORTH)){
+						std::cerr << "Wall Encountered (NORTH)!!!" << '\n';
+						flag = 1;
+						// mouse.set_cur_status(m_x, m_y, m_d);
+						std::cerr << "STOP_BY_WALL: "<<std::to_string(m_x) << ", "  << std::to_string(m_y) << '\n';
+						break;
+					}
+					else flag = 0;
 				}
 				// moving east
-				else if(new_x == 1 && new_y == 0){
+				else if(delta_x == 1 && delta_y == 0){
 					// mouse.turn_right();
 					dir = 1;
 					std::cerr << "Move East !!!" << '\n';
-					mouse.mouse_run(direction::EAST);
+					if(!mouse.mouse_run(delta_x, delta_y, direction::EAST)){
+						std::cerr << "Wall Encountered (EAST)!!!" << '\n';
+						flag = 1;
+						// mouse.set_cur_status(m_x, m_y, m_d);
+						
+						break;
+					}
+					else flag = 0;
 				}
 				// moving south
-				else if(new_x == 0 && new_y == -1){
+				else if(delta_x == 0 && delta_y == -1){
 					// mouse.turn_right();
 					// mouse.turn_right();
 					dir = 2;
 					std::cerr << "Move South !!!" << '\n';
-					mouse.mouse_run(direction::SOUTH);
+					if(!mouse.mouse_run(delta_x, delta_y, direction::SOUTH)){
+						std::cerr << "Wall Encountered (SOUTH)!!!" << '\n';
+						flag = 1;
+						// mouse.set_cur_status(m_x, m_y, m_d);
+						
+						break;
+					}
+					else flag = 0;
 				}
 				// moving west
-				else if(new_x == -1 && new_y == 0){
+				else if(delta_x == -1 && delta_y == 0){
 					// mouse.turn_left();
 					dir = 3;
 					std::cerr << "Move West !!!" << '\n';
-					mouse.mouse_run(direction::WEST);
+					if(!mouse.mouse_run(delta_x, delta_y, direction::WEST)){
+						std::cerr << "Wall Encountered (WEST)!!!" << '\n';
+						flag = 1;
+						// mouse.set_cur_status(m_x, m_y, m_d);
+						
+						break;
+					}
+					else flag = 0;
 				}
-				std::cerr << "***************" << '\n';	
+				// std::cerr << "***************" << '\n';	
+				// // std::cerr << std::to_string(m_x) << ", "  << std::to_string(m_y) << '\n';
+				// mouse.set_cur_status(path.top().first, path.top().second, dir);
 				// std::cerr << std::to_string(m_x) << ", "  << std::to_string(m_y) << '\n';
-				mouse.set_cur_status(path.top().first, path.top().second, dir);
-				std::cerr << std::to_string(m_x) << ", "  << std::to_string(m_y) << '\n';
-				std::cerr << "^^^^^^^^^^^^^^^" << '\n';	
+				// std::cerr << "^^^^^^^^^^^^^^^" << '\n';	
+
 				path.pop();
-			} 
+			}
+		}
+		else{
+			std::cerr << "Unable to find path !!!" << '\n';
+			break;
 		}
 		
 	}
